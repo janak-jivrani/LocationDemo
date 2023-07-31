@@ -2,16 +2,11 @@ package com.zw.template.viewmodels
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
-import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,47 +16,34 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.AutocompleteSessionToken
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FetchPlaceRequest
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
-import com.google.android.libraries.places.api.net.PlacesClient
-import com.zw.template.activities.MainActivity
+import com.google.gson.Gson
 import com.zw.template.core.Constant.REQUEST_CHECK_LOCATION_SETTINGS
-import com.zw.template.models.AddressDataModel
-import kotlinx.coroutines.CoroutineExceptionHandler
+import com.zw.template.models.MapData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class LocationViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor() : ViewModel() {
 
-    val lastLocationLiveData = MutableLiveData<Location>()
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var locationRequest: LocationRequest
     val currentLocationLiveData = MutableLiveData<Location>()
-    val currentLiveLocationLiveData = MutableLiveData<Location>()
-    val gecodeResultLiveData = MutableLiveData<AddressDataModel?>()
-    val searchResultLiveData = MutableLiveData<ArrayList<AutocompletePrediction>>()
-
+    val routeLiveData = MutableLiveData<Triple<List<LatLng>, Location, String>>()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationPermissionResultLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var placesClient: PlacesClient
-    private lateinit var token: AutocompleteSessionToken
-
-    private val handler = Handler(Looper.getMainLooper())
-    private val TAG = "ChooseLocationViewModel"
 
     @SuppressLint("MissingPermission")
     fun initLocationClient(mActivity: AppCompatActivity) {
-        Places.initialize(mActivity, mActivity.getString(com.zw.template.R.string.api_key))
-        placesClient = Places.createClient(mActivity)
-        token = AutocompleteSessionToken.newInstance()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(mActivity)
         locationPermissionResultLauncher =
             mActivity.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result: Map<String, Boolean> ->
@@ -84,6 +66,15 @@ class LocationViewModel @Inject constructor() : ViewModel() {
                     }
                 }
             }
+        locationRequest =
+            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, TimeUnit.SECONDS.toMillis(10))
+                .build()
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+                currentLocationLiveData.postValue(locationResult.lastLocation)
+            }
+        }
     }
 
     private fun checkLocationPermission(context: Context): Boolean {
@@ -106,37 +97,24 @@ class LocationViewModel @Inject constructor() : ViewModel() {
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-    fun getLastLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener {
-            lastLocationLiveData.postValue(it)
-        }
-    }
-
-    @RequiresPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-    fun getCurrentLocation() {
-        val cts = CancellationTokenSource()
-        val token = cts.token
-        token.onCanceledRequested {
-            // Some other operations to cancel this Task, such as free resources...
-
-        }
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, token)
-            .addOnSuccessListener {
-                currentLocationLiveData.postValue(it)
-            }
-    }
-
-    @RequiresPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
     fun getLiveLocation() {
         val cts = CancellationTokenSource()
         val token = cts.token
         token.onCanceledRequested {
             // Some other operations to cancel this Task, such as free resources...
         }
-        fusedLocationClient.requestLocationUpdates(Priority.PRIORITY_HIGH_ACCURACY, token)
-            .addOnSuccessListener {
-                currentLiveLocationLiveData.postValue(it)
-            }
+
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -151,10 +129,7 @@ class LocationViewModel @Inject constructor() : ViewModel() {
         val task = client.checkLocationSettings(builder.build())
         task.addOnSuccessListener {
             //TODO: handle location is already on
-            if (mActivity is MainActivity) {
-                getLiveLocation()
-            } else
-                getCurrentLocation()
+            getLiveLocation()
         }
         task.addOnFailureListener { e ->
             if (e is ResolvableApiException) {
@@ -182,78 +157,88 @@ class LocationViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun handlePlaceSearch(query: String) {
-        handler.removeCallbacksAndMessages(null)
-        handler.postDelayed({ getPlacePredictions(query) }, 300)
-    }
+    // Draw route between home and current location
+    fun findDirection(location: Location, origin: LatLng, dest: LatLng, secret: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val client = OkHttpClient()
+            val request = Request.Builder().url(getDirectionURL(origin, dest, secret)).build()
+            val response = client.newCall(request).execute()
+            val data = response.body!!.string()
 
-    private fun getPlacePredictions(query: String) {
-
-        val request = FindAutocompletePredictionsRequest.builder().setQuery(query).build()
-
-        placesClient.findAutocompletePredictions(request)
-            .addOnSuccessListener { response: FindAutocompletePredictionsResponse ->
-                for (prediction in response.autocompletePredictions) {
-                    Log.i(TAG, prediction.placeId)
-                    Log.i(TAG, prediction.getPrimaryText(null).toString())
+            var distance = ""
+            val result = ArrayList<LatLng>()
+            try {
+                val respObj = Gson().fromJson(data, MapData::class.java)
+                for (i in 0 until respObj.routes[0].legs[0].steps.size) {
+                    result.addAll(decodePolyline(respObj.routes[0].legs[0].steps[i].polyline.points))
                 }
-                searchResultLiveData.postValue(
-                    response.autocompletePredictions.toCollection(
-                        ArrayList()
-                    )
-                )
-            }.addOnFailureListener { exception: Exception? ->
-                if (exception is ApiException) {
-                    Log.e(TAG, "Place not found: " + exception.statusCode)
-                }
+
+                distance = respObj.routes[0].legs[0].distance.text
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
 
-    }
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.w(TAG, "No results from geocoding request." + throwable.message)
-    }
-
-    fun getGeocodeResultByPlacePrediction(placePrediction: AutocompletePrediction) {
-        val placeId = placePrediction.placeId.toString()
-        val placeFields =
-            listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
-        val request = FetchPlaceRequest.builder(placeId, placeFields).build()
-        placesClient.fetchPlace(request).addOnSuccessListener { response ->
-            val place = response.place
-            val address = AddressDataModel().apply {
-                name = place.name
-                address = place.address
-                latitude = place.latLng?.latitude.toString()
-                longitude = place.latLng?.longitude.toString()
-                latLng = place.latLng as LatLng
+            if (distance.isBlank()) {
+                distance =
+                    distance(origin.latitude, origin.longitude, dest.latitude, dest.longitude)
             }
-            gecodeResultLiveData.postValue(address)
-        }.addOnFailureListener { exception ->
-            if (exception is ApiException) {
-                // Toast.makeText(mContext, exception.message + "", Toast.LENGTH_SHORT).show()
+
+            withContext(Dispatchers.Main) {
+                routeLiveData.postValue(Triple(result, location, distance))
             }
         }
     }
 
-    fun getAddress(activity: Activity, currentLatitude: Double, currentLongitude: Double) {
-        try {
-            val geocoder = Geocoder(activity, Locale.getDefault())
-            val addresses: MutableList<Address>? =
-                geocoder.getFromLocation(currentLatitude, currentLongitude, 1)
-            if (addresses?.isNotEmpty() == true) {
-                val current: Address = addresses[0]
-                val addressdata = AddressDataModel().apply {
-                    name = current.featureName
-                    address = current.getAddressLine(0)
-                    latitude = currentLatitude.toString()
-                    longitude = currentLongitude.toString()
-                    latLng = LatLng(currentLatitude, currentLongitude)
-                }
-                gecodeResultLiveData.postValue(addressdata)
-            }
-        } catch (e: Exception) {
+    private fun getDirectionURL(origin: LatLng, dest: LatLng, secret: String): String {
+        return "https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}" +
+                "&destination=${dest.latitude},${dest.longitude}" +
+                "&sensor=false" +
+                "&mode=driving" +
+                "&key=$secret"
+    }
 
+    private fun decodePolyline(encoded: String): List<LatLng> {
+        val poly = ArrayList<LatLng>()
+        var index = 0
+        val len = encoded.length
+        var lat = 0
+        var lng = 0
+        while (index < len) {
+            var b: Int
+            var shift = 0
+            var result = 0
+            do {
+                b = encoded[index++].code - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lat += dlat
+            shift = 0
+            result = 0
+            do {
+                b = encoded[index++].code - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lng += dlng
+            val latLng = LatLng((lat.toDouble() / 1E5), (lng.toDouble() / 1E5))
+            poly.add(latLng)
         }
+        return poly
+    }
+
+    //Calculate distance
+    private fun distance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): String {
+        val startPoint = Location("locationA")
+        startPoint.latitude = lat1
+        startPoint.longitude = lon1
+
+        val endPoint = Location("locationA")
+        endPoint.latitude = lat2
+        endPoint.longitude = lon2
+
+        return "${startPoint.distanceTo(endPoint)/1000} Km"
     }
 }

@@ -6,7 +6,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".worklocation.search.NewSearchLocationActivity">
+        tools:context=".activities.NewSearchLocationActivity">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -24,20 +24,18 @@
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tvTitle"
+                    style="@style/TextAppearance.AppCompat.Title"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:text="@string/work_location"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/_14ssp"
-                    app:fontFamily="@font/poppins_semibold" />
+                    android:text="@string/search_location"
+                    android:textColor="@android:color/white" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivBack"
                     android:layout_width="?actionBarSize"
                     android:layout_height="?actionBarSize"
-                    android:padding="@dimen/_14sdp"
+                    android:padding="@dimen/_12sdp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -185,7 +183,7 @@
                 android:layout_margin="@dimen/_1sdp"
                 android:layout_marginTop="@dimen/_10sdp"
                 android:visibility="gone"
-                app:cardBackgroundColor="@color/white"
+                app:cardBackgroundColor="@android:color/white"
                 app:cardCornerRadius="@dimen/_10sdp"
                 app:cardElevation="@dimen/_1sdp"
                 app:cardPreventCornerOverlap="false"
@@ -207,7 +205,6 @@
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/_10sdp"
                         android:text="@string/current_location"
-                        android:textColor="@color/light_black"
                         android:textSize="@dimen/_11ssp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -219,7 +216,6 @@
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/_10sdp"
                         android:text="@string/current_location"
-                        android:textColor="@color/light_black"
                         android:textSize="@dimen/_9ssp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/addressName" />

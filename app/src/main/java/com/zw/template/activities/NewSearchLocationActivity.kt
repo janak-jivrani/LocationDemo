@@ -1,47 +1,41 @@
-package com.uppereastcare.mednurse.worklocation.search
+package com.zw.template.activities
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import androidx.core.widget.doOnTextChanged
 import androidx.databinding.DataBindingUtil
 import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.uppereastcare.mednurse.R
-import com.uppereastcare.mednurse.activities.BaseActivity
-import com.uppereastcare.mednurse.core.Constant
-import com.uppereastcare.mednurse.core.ViewModelFactory
-import com.uppereastcare.mednurse.core.getViewModelFromFactory
-import com.uppereastcare.mednurse.databinding.ActivityNewSearchLocationBinding
-import com.uppereastcare.mednurse.di.ZwApplication
-import com.uppereastcare.mednurse.extensions.hideKeyboard
-import com.uppereastcare.mednurse.extensions.showKeyboard
+import com.zw.template.R
+import com.zw.template.adapters.SearchLocationListAdapter
+import com.zw.template.core.*
+import com.zw.template.databinding.ActivityNewSearchLocationBinding
+import com.zw.template.di.ZwApplication
+import com.zw.template.viewmodels.LocationViewModel
 import javax.inject.Inject
 
 class NewSearchLocationActivity : BaseActivity() {
 
     private lateinit var binding: ActivityNewSearchLocationBinding
-
-    val searchList = arrayListOf<AutocompletePrediction>()
+    private val searchList = arrayListOf<AutocompletePrediction>()
 
     @Inject
-    internal lateinit var viewModelFactory: ViewModelFactory<ChooseLocationViewModel>
-    private lateinit var mViewModel: ChooseLocationViewModel
+    internal lateinit var viewModelFactory: ViewModelFactory<LocationViewModel>
+    private lateinit var mViewModel: LocationViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (application as ZwApplication).component.inject(this)
+        ZwApplication.component.inject(this)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_new_search_location)
 
         mViewModel = getViewModelFromFactory(viewModelFactory)
 
         setUpObserver()
 
-        mViewModel.initLocationClient(mActivity!!)
+        mViewModel.initLocationClient(this)
 
         setUpClicks(binding.ivBack)
 
         binding.etSearch.doOnTextChanged { _, _, _, _ ->
-            mpEventLogger.logSearchWorkLocationEvent(binding.etSearch.text.toString())
             mViewModel.handlePlaceSearch(binding.etSearch.text.toString())
         }
 
@@ -61,7 +55,7 @@ class NewSearchLocationActivity : BaseActivity() {
     private fun setUpObserver() {
 
         mViewModel.gecodeResultLiveData.observe(this) {
-            setResult(Activity.RESULT_OK, intent.putExtra(Constant.PASS_LOCATION_DATA, it))
+            setResult(RESULT_OK, intent.putExtra(Constant.PASS_LOCATION_DATA, it))
             finish()
         }
 

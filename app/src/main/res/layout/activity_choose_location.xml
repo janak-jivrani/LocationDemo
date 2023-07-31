@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:descendantFocusability="blocksDescendants">
+        android:layout_height="match_parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -23,24 +23,25 @@
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tvTitle"
+                    style="@style/TextAppearance.AppCompat.Title"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:text="@string/select_location"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/_14ssp" />
+                    android:textColor="@android:color/white" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivBack"
                     android:layout_width="?actionBarSize"
                     android:layout_height="?actionBarSize"
-                    android:padding="@dimen/_8sdp"
+                    android:padding="@dimen/_12sdp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_back" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
         </com.google.android.material.appbar.MaterialToolbar>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -48,10 +49,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_16sdp"
-            android:layout_marginTop="@dimen/_8sdp"
+            android:layout_marginTop="@dimen/_10sdp"
             android:layout_marginEnd="@dimen/_16sdp"
             android:layout_marginBottom="@dimen/_8sdp"
             android:background="@drawable/search_bar_back"
+            android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar">
@@ -62,13 +64,18 @@
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
                 android:hint="@string/search_location"
+                android:imeOptions="actionDone"
+                android:includeFontPadding="false"
+                android:inputType="text"
+                android:maxLines="1"
                 android:padding="@dimen/_6sdp"
+                android:singleLine="true"
                 android:textColor="@android:color/black"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/ivSearch"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"></com.google.android.material.textfield.TextInputEditText>
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/ivSearch"
@@ -82,22 +89,168 @@
                 app:srcCompat="@drawable/ic_search" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <FrameLayout
-            android:id="@+id/flLocationContainer"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/mainView"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:layout_marginVertical="@dimen/_10sdp"
+            app:layout_constraintBottom_toTopOf="@+id/btnConfirm"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/clSearchBar">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/llSearchView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/search_bar_back"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:focusableInTouchMode="true"
+                    android:focusedByDefault="false"
+                    android:hint="@string/search_location"
+                    android:padding="@dimen/_6sdp"
+                    android:textColor="@android:color/black"
+                    android:textSize="@dimen/_12ssp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/imgSearch"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/imgSearch"
+                    android:layout_width="@dimen/_28sdp"
+                    android:layout_height="@dimen/_28sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:padding="@dimen/_4sdp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_search" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMap"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginVertical="@dimen/_10sdp"
+                android:visibility="gone"
+                app:cardCornerRadius="@dimen/_8sdp"
+                app:cardElevation="0dp"
+                app:layout_constraintBottom_toTopOf="@id/cardAddressDetails"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/llSearchView">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:id="@+id/flLocationContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/imgTempMarker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="@dimen/_20sdp"
+                        android:src="@drawable/ic_marker_current"
+                        android:visibility="gone" />
+
+                </FrameLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAddressDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/_1sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="@dimen/_10sdp"
+                app:cardElevation="@dimen/_1sdp"
+                app:cardPreventCornerOverlap="false"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardMap">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="@dimen/_10sdp">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/addressName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:text="@string/current_location"
+                        android:textSize="@dimen/_11ssp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/addressDetails"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:text="@string/current_location"
+                        android:textSize="@dimen/_9ssp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/addressName" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvLocations"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="vertical"
+                android:visibility="visible"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:itemCount="8"
+                tools:listitem="@layout/row_location_picker_list" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_45sdp"
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:layout_marginVertical="@dimen/_5sdp"
+            android:text="@string/confirm_location"
+            android:visibility="gone"
+            app:cornerRadius="@dimen/_15sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/rlCurrentLocation"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/clSearchBar" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/groupCurrentLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
-            app:constraint_referenced_ids="rlCurrentLocation,rlLocateOnMap,view"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/mainView" />
 
         <RelativeLayout
             android:id="@+id/rlCurrentLocation"
@@ -107,6 +260,7 @@
             android:elevation="@dimen/_4sdp"
             android:gravity="center"
             android:padding="@dimen/_8sdp"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintWidth_percent="0.5">
@@ -118,7 +272,7 @@
                 android:layout_centerVertical="true"
                 app:srcCompat="@drawable/ic_current_location" />
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tvCurrentLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -126,6 +280,7 @@
                 android:layout_toEndOf="@+id/ivCurrentLocation"
                 android:padding="@dimen/_6sdp"
                 android:text="@string/current_location"
+                android:textColor="@android:color/black"
                 android:textSize="@dimen/_11ssp" />
 
         </RelativeLayout>
@@ -160,7 +315,7 @@
                 android:layout_centerVertical="true"
                 app:srcCompat="@drawable/ic_location_on_map" />
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tvLocateOnMap"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -168,9 +323,11 @@
                 android:layout_toEndOf="@+id/ivLocateOnMap"
                 android:padding="@dimen/_6sdp"
                 android:text="@string/locate_on_map"
+                android:textColor="@android:color/black"
                 android:textSize="@dimen/_11ssp" />
 
         </RelativeLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>
