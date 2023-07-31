@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.zw.template">
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <application
+        android:name=".di.ZwApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppTheme"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name="com.zw.template.activities.SplashActivity"
+            android:exported="true"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.zw.template.activities.ChooseLocationActivity"
+            android:exported="true"
+            android:windowSoftInputMode="stateVisible" />
+        <activity
+            android:name="com.zw.template.activities.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name="com.zw.template.activities.NewSearchLocationActivity"
+            android:exported="true"
+            android:windowSoftInputMode="stateVisible" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/api_key" />
+
+    </application>
+
+</manifest>

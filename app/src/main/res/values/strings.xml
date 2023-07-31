@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Location Demo</string>
+    <string name="api_key" translatable="false">AIzaSyBdZtD297u4KpkVXz2PDb3tTtQ78YEmYZc</string>
+    <string name="select_location">Select Home Location</string>
+    <string name="search_location">Search location</string>
+    <string name="current_location">Current Location</string>
+    <string name="locate_on_map">Locate on Map</string>
+    <string name="confirm_location">Confirm Location</string>
+    <string name="update_location">Update Location</string>
+    <string name="fetching">Fetching…</string>
+</resources>
