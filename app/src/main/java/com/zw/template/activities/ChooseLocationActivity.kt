@@ -24,6 +24,7 @@ import com.zw.template.core.Constant.REQUEST_CHECK_LOCATION_SETTINGS
 import com.zw.template.databinding.ActivityChooseLocationBinding
 import com.zw.template.di.ZwApplication
 import com.zw.template.models.AddressDataModel
+import com.zw.template.models.DestinationListDataModel
 import com.zw.template.viewmodels.LocationViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -259,8 +260,21 @@ class ChooseLocationActivity : BaseActivity(), OnMapReadyCallback {
 
     private fun saveHomeLocation() {
         selectedPlace?.let {
-            PreferenceUtil.setHomeLocation(this, it)
-            setResult(RESULT_OK)
+
+            val old = PreferenceUtil.getDestinationList(this)?.destinationList
+
+            if (old.isNullOrEmpty()) {
+                PreferenceUtil.setDestinationList(
+                    this,
+                    DestinationListDataModel(destinationList = arrayListOf(it))
+                )
+            } else {
+                old.add(it)
+                PreferenceUtil.setDestinationList(
+                    this,
+                    DestinationListDataModel(destinationList = old)
+                )
+            }
             finish()
         }
     }
@@ -277,7 +291,7 @@ class ChooseLocationActivity : BaseActivity(), OnMapReadyCallback {
 
     override fun onMapReady(p0: GoogleMap) {
         mMap = p0
-        setIsEditOrNot()
+       // setIsEditOrNot()
     }
 
     override fun onBackPressed() {

@@ -3,8 +3,10 @@ package com.zw.template.core
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
+import com.zw.template.core.Constant.DESTINATION_LIST
 import com.zw.template.core.Constant.PREF_HOME_LOCATION
 import com.zw.template.models.AddressDataModel
+import com.zw.template.models.DestinationListDataModel
 
 object PreferenceUtil {
     lateinit var m_sharedPreference: SharedPreferences
@@ -79,4 +81,21 @@ object PreferenceUtil {
             return gson.fromJson(json, AddressDataModel::class.java)
         return null
     }
+
+    fun setDestinationList(
+        p_context: Context?,
+        destinationListDataModel: DestinationListDataModel
+    ) {
+        val string = Gson().toJson(destinationListDataModel)
+        setStringSharedPref(p_context, DESTINATION_LIST, string)
+    }
+
+    fun getDestinationList(p_context: Context?): DestinationListDataModel? {
+        val gson = Gson()
+        val json = getStringSharedPref(p_context, DESTINATION_LIST, null)
+        if (json != null)
+            return gson.fromJson(json, DestinationListDataModel::class.java)
+        return null
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.zw.template.core
 
 import android.Manifest
-import android.R
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
@@ -12,6 +11,7 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.*
+import android.location.Location
 import android.location.LocationManager
 import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
@@ -49,7 +49,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.zw.template.R
 import java.io.*
+import java.lang.Math.atan2
+import java.lang.Math.cos
+import java.lang.Math.sin
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.net.NetworkInterface
@@ -106,16 +112,16 @@ object CommonUtils {
         return String(s.toByteArray(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1)
     }
 
-    fun getActionBarHeight(mActivity: Activity): Int {
-        // Calculate ActionBar height
-        var result = 0
-        val tv = TypedValue()
-        if (mActivity.theme.resolveAttribute(R.attr.actionBarSize, tv, true)) {
-            result =
-                TypedValue.complexToDimensionPixelSize(tv.data, mActivity.resources.displayMetrics)
-        }
-        return result
-    }
+//    fun getActionBarHeight(mActivity: Activity): Int {
+//        // Calculate ActionBar height
+//        var result = 0
+//        val tv = TypedValue()
+//        if (mActivity.theme.resolveAttribute(R.attr.actionBarSize, tv, true)) {
+//            result =
+//                TypedValue.complexToDimensionPixelSize(tv.data, mActivity.resources.displayMetrics)
+//        }
+//        return result
+//    }
 
 
     fun resizeBitmap(mBitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
@@ -738,7 +744,7 @@ object CommonUtils {
                     alertBuilder.setTitle("Permission necessary")
                     alertBuilder.setMessage("External storage & camera permission is necessary")
                     alertBuilder.setPositiveButton(
-                        R.string.yes
+                        "Yes"
                     ) { _, _ ->
                         ActivityCompat.requestPermissions(
                             (context as Activity?)!!,
@@ -903,13 +909,16 @@ object CommonUtils {
                 hour -= 12
                 timeSet = "PM"
             }
+
             hour == 0 -> {
                 hour += 12
                 timeSet = "AM"
             }
+
             hour == 12 -> {
                 timeSet = "PM"
             }
+
             else -> {
                 timeSet = "AM"
             }
@@ -1408,15 +1417,15 @@ object CommonUtils {
     fun getFileNameFromUrl(urlPath: String): String {
         return urlPath.substring(urlPath.lastIndexOf('/') + 1)
     }
-/*
-    public static boolean isValidPassword(final String password) {
-        Pattern pattern;
-        Matcher matcher;
-        final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
-        pattern = Pattern.compile(PASSWORD_PATTERN);
-        matcher = pattern.matcher(password);
-        return matcher.matches();
-    }*/
+    /*
+        public static boolean isValidPassword(final String password) {
+            Pattern pattern;
+            Matcher matcher;
+            final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
+            pattern = Pattern.compile(PASSWORD_PATTERN);
+            matcher = pattern.matcher(password);
+            return matcher.matches();
+        }*/
 
     /*
     public static boolean isValidPassword(final String password) {
@@ -1430,5 +1439,43 @@ object CommonUtils {
     fun isValidPassword(password: String): Boolean {
         return password.length >= 6
     }
+
+    fun calculateBearing(start: LatLng, end: LatLng): Double {
+        val lat1 = Math.toRadians(start.latitude)
+        val lon1 = Math.toRadians(start.longitude)
+        val lat2 = Math.toRadians(end.latitude)
+        val lon2 = Math.toRadians(end.longitude)
+
+        val y = sin(lon2 - lon1) * cos(lat2)
+        val x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1)
+
+        var bearing = Math.toDegrees(atan2(y, x))
+        if (bearing < 0) {
+            bearing += 360
+        }
+
+        return bearing
+    }
+
+    fun getHomeMarker(activity: Activity, latLng: LatLng?): MarkerOptions {
+        val marker = bitmapDescriptorFromVector(
+            activity,
+            R.drawable.ic_marker_home
+        )
+        return MarkerOptions().position(LatLng(latLng?.latitude!!, latLng.longitude))
+            .title("Destination")
+            .icon(marker)
+    }
+
+    fun getCurrentMarker(activity: Activity, latLng: LatLng?): MarkerOptions {
+        val marker = bitmapDescriptorFromVector(
+            activity,
+            R.drawable.ic_marker_current
+        )
+        return MarkerOptions().position(LatLng(latLng?.latitude!!, latLng.longitude))
+            .title("Current")
+            .icon(marker)
+    }
+
 
 }

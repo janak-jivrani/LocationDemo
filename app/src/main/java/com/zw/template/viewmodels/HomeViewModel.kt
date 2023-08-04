@@ -21,6 +21,7 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.gson.Gson
+import com.zw.template.core.Constant
 import com.zw.template.core.Constant.REQUEST_CHECK_LOCATION_SETTINGS
 import com.zw.template.models.MapData
 import kotlinx.coroutines.CoroutineScope
@@ -158,10 +159,10 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     }
 
     // Draw route between home and current location
-    fun findDirection(location: Location, origin: LatLng, dest: LatLng, secret: String) {
+    fun findDirection(location: Location, origin: LatLng, dest: LatLng) {
         CoroutineScope(Dispatchers.IO).launch {
             val client = OkHttpClient()
-            val request = Request.Builder().url(getDirectionURL(origin, dest, secret)).build()
+            val request = Request.Builder().url(getDirectionURL(origin, dest, Constant.GOOGLE_PLACES)).build()
             val response = client.newCall(request).execute()
             val data = response.body!!.string()
 
@@ -179,8 +180,7 @@ class HomeViewModel @Inject constructor() : ViewModel() {
             }
 
             if (distance.isBlank()) {
-                distance =
-                    distance(origin.latitude, origin.longitude, dest.latitude, dest.longitude)
+                distance = distance(origin.latitude, origin.longitude, dest.latitude, dest.longitude)
             }
 
             withContext(Dispatchers.Main) {
