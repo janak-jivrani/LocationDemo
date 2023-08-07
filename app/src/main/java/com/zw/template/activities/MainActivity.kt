@@ -11,6 +11,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -63,7 +64,7 @@ class MainActivity : BaseActivity(), OnMapReadyCallback, SensorEventListener {
         setContentView(binding.root)
 
         chooseLocationViewModel = getViewModelFromFactory(viewModelFactory)
-        setUpClicks(binding.fabHome)
+        setUpClicks(binding.fabHome, binding.btnNavigate)
         setUpObserver()
         setUpMap()
 
@@ -128,6 +129,7 @@ class MainActivity : BaseActivity(), OnMapReadyCallback, SensorEventListener {
         currentMarker?.remove()
 
         PreferenceUtil.getHomeLocation(this)?.let {
+            destinationLocation = LatLng(it.latitude!!,it.longitude!!)
             homeMarker = mMap?.addMarker(
                 CommonUtils.getHomeMarker(
                     this,
@@ -191,6 +193,12 @@ class MainActivity : BaseActivity(), OnMapReadyCallback, SensorEventListener {
             }
         }
 
+        if (currentLocation != null && destinationLocation != null) {
+            binding.btnNavigate.visibility = View.VISIBLE
+        } else {
+            binding.btnNavigate.visibility = View.GONE
+        }
+
     }
 
     override fun onClick(v: View) {
@@ -242,6 +250,22 @@ class MainActivity : BaseActivity(), OnMapReadyCallback, SensorEventListener {
                             }
                         }
                     })
+            }
+
+            R.id.btnNavigate -> {
+                currentLocation?.let { current ->
+                    destinationLocation?.let { dest ->
+                        try {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("http://maps.google.com/maps?saddr=" + current.latitude + "," + current.longitude + "&daddr=" + dest.latitude + "," + dest.longitude)
+                            )
+                            intent.setPackage("com.google.android.apps.maps")
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                        }
+                    }
+                }
             }
         }
     }

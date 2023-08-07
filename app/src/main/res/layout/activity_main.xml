@@ -61,6 +61,23 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNavigate"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_34sdp"
+        android:layout_marginBottom="@dimen/_20sdp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:visibility="gone"
+        android:text="Navigate To GMap"
+        android:textAllCaps="false"
+        android:textSize="@dimen/_14ssp"
+        app:cornerRadius="@dimen/_10sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabHome"
         android:layout_width="wrap_content"
